@@ -17,25 +17,16 @@ export const unpkgPathPlugin = (inputCode: string) => {
     return {
         name: 'unpkg-path-plugin',
         setup(build: esbuild.PluginBuild) {
-            build.onResolve({ filter: /.*/ }, async (args: any) => {
-                console.log('onResole', args);
-                if(args.path ==="index.js"){
-                    return {path: args.path, namespace:"a"}
+            build.onResolve({filter: /(^index\.js$)/ },()=>{
+                return {path:"index.js", namespace:"a"};
+        });
+            build.onResolve({ filter: /^\.+\// }, async (args: any)=>{
+                return {
+                    namespace: "a",
+                    path: new URL(args.path, "https://unpkg.com" + args.resolveDir + "/").href
                 }
-
-                if (args.path.includes("./") || args.path.includes("../")){
-                    return {
-                        namespace:"a",
-                        path: new URL(args.path, "https://unpkg.com"+ args.resolveDir+ "/").href
-                    }
-                } 
-                
-                /* else if (args.path ==='tiny-test-pkg'){
-                    return {
-                        path: "https://unpkg.com/tiny-test-pkg@1.0.0/index.js",
-                        namespace:"a"
-                    }
-                } */
+        });
+            build.onResolve({ filter: /.*/ }, async (args: any) => {
                 return { path: `https://unpkg.com/${args.path}`, namespace: 'a' };
             });
 
